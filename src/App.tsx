@@ -16,7 +16,7 @@ async function getDirectLine(tokenEndpointURL: string, locale: string) {
   const apiVersion = new URL(tokenEndpointURL).searchParams.get("api-version");
 
   const [directLineURL, token] = await Promise.all([
-    fetch(new URL(`/powervirtualagents/regionalchannelsettings?api-version=${apiVersion}`, tokenEndpointURL))
+    fetch(new URL(`/powervirtualagents/regionalchannelsettings?api-version=${apiVersion}`, tokenEndpointURL).toString())
       .then((r) => {
         if (!r.ok) throw new Error(`Regional settings failed (HTTP ${r.status})`);
         return r.json();
@@ -31,7 +31,7 @@ async function getDirectLine(tokenEndpointURL: string, locale: string) {
   ]);
 
   const directLine = createDirectLine({
-    domain: new URL("v3/directline", directLineURL),
+    domain: new URL("v3/directline", directLineURL).toString(),
     token
   });
 
@@ -39,14 +39,12 @@ async function getDirectLine(tokenEndpointURL: string, locale: string) {
   const sub = directLine.connectionStatus$.subscribe({
     next(value) {
       if (value === 2) {
-        directLine
-          .postActivity({
+        directLine.postActivity({
             type: "event",
             name: "startConversation",
             locale,
             localTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          })
-          .subscribe();
+          } as any).subscribe();
         sub.unsubscribe();
       }
     }
@@ -72,7 +70,6 @@ export default function App() {
       botAvatarInitials: "",
       userAvatarInitials: "",
       avatarSize: 28,
-      showAvatarInGroup: false,
       bubbleMaxWidth: 560
     }),
     []
